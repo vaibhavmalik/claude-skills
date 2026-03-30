@@ -1,0 +1,12 @@
+{
+  "name": "babysit-pr",
+  "description": "Automates the PR review-fix-push cycle: waits for CI, processes review comments (bot and human), fixes or defers, pushes, replies, and loops until clean.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Vaibhav Malik",
+    "email": "vaibhav.malik001@gmail.com"
+  },
+  "homepage": "https://github.com/vaibhavmalik/babysit-pr",
+  "license": "MIT",
+  "keywords": ["pr", "github", "automation", "ci", "code-review", "claude-code"]
+}
