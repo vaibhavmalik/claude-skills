@@ -1,0 +1,13 @@
+{
+  "name": "babysit-pr-marketplace",
+  "owner": {
+    "name": "Vaibhav Malik"
+  },
+  "plugins": [
+    {
+      "name": "babysit-pr",
+      "source": "./",
+      "description": "Automates the PR review-fix-push cycle: waits for CI, processes review comments (bot and human), fixes or defers, pushes, replies, and loops until clean."
+    }
+  ]
+}
