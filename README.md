@@ -1,58 +1,49 @@
-# babysit-pr
+# claude-skills
 
-A [Claude Code](https://claude.ai/code) skill that automates the PR review-fix-push cycle.
+Claude Code skills for the unglamorous half of shipping: getting a pull request merged, and writing
+the description a stranger can review it from. Each skill is a plugin in this marketplace, built from
+rules that earned their place on real PRs.
 
-## What it does
+| Plugin | What it does |
+|---|---|
+| [babysit-pr](plugins/babysit-pr) | Drives a PR to merge: updates the branch, answers every review comment (bot or human), fixes CI, re-requests reviewers, and optionally watches until auto-merge lands it. |
+| [pr-description](plugins/pr-description) | Writes a PR body for an engineer who knows nothing about the task, then has a fresh subagent fact-check every claim against the diff before posting. |
 
-`babysit-pr` watches your pull request, processes all review comments (from bots and humans), fixes what it can, defers what it can't, pushes changes, replies to threads, and loops until your PR is clean.
+The two compose: when a `babysit-pr` cycle converges after changing the PR, it calls `pr-description`
+to re-true the body, so the description never describes a PR that no longer exists.
 
-### Features
+## Install
 
-- **CI monitoring** — waits for all checks to pass/fail before processing comments
-- **Automatic fixes** — applies bug fixes, style corrections, type fixes, and more
-- **Smart deferrals** — defers architectural suggestions, subjective preferences, and risky changes
-- **Threaded replies** — replies to each comment thread with `[babysit-pr]` prefix for traceability
-- **Merged PR support** — creates follow-up PRs for already-merged PRs
-- **Idempotent** — won't re-process comments it's already addressed
-- **Safe** — never force pushes on open PRs, confirms before large changes, max 5 iterations
-
-### How it classifies comments
-
-| Action | Examples |
-|--------|---------|
-| **FIX** | Bug reports, security issues, style violations, missing types, unused imports, test improvements |
-| **DEFER** | Architectural suggestions, subjective preferences, changes >50 lines, suggestions outside PR diff |
-
-## Installation
-
-### As a Claude Code plugin
-
-```bash
-# Add as a plugin marketplace
-/plugin marketplace add vaibhavmalik/babysit-pr
-/plugin install babysit-pr
+```text
+/plugin marketplace add vaibhavmalik/claude-skills
+/plugin install babysit-pr@claude-skills
+/plugin install pr-description@claude-skills
 ```
 
-### Manual (copy to your project)
+Or copy a skill folder straight into a project (`.claude/skills/<name>/`) or your home directory
+(`~/.claude/skills/<name>/`); each skill is self-contained.
 
-Copy `skills/babysit-pr/SKILL.md` into your project's `.claude/skills/babysit-pr/SKILL.md`.
+## Use
 
-### Personal (all your projects)
-
-Copy `skills/babysit-pr/SKILL.md` to `~/.claude/skills/babysit-pr/SKILL.md`.
-
-## Usage
-
+```text
+/babysit-pr                      # full cycle on the current branch's PR
+/babysit-pr 123 --until-merged   # and keep it mergeable until it lands
+/babysit-pr comments 123         # only answer review comments
+/pr-description                  # write or rewrite the PR body
 ```
-/babysit-pr           # Auto-detect PR from current branch
-/babysit-pr 123       # Babysit PR #123
-```
+
+Run `/babysit-pr --help` for every sub-command and flag.
 
 ## Requirements
 
-- [Claude Code](https://claude.ai/code)
-- [GitHub CLI (`gh`)](https://cli.github.com/) — authenticated
-- Git repository with a GitHub remote
+[Claude Code](https://claude.ai/code), an authenticated [GitHub CLI](https://cli.github.com/), and a
+repository with a GitHub remote.
+
+## Where these come from
+
+Both skills were developed and used daily on a Rails backend and its surrounding services, then
+stripped of anything specific to that setup. The READMEs in each plugin record what was measured and
+why each rule exists. Contributions are welcome; please include the failure a change fixes.
 
 ## License
 

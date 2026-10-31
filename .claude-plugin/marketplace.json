@@ -1,13 +1,28 @@
 {
-  "name": "babysit-pr-marketplace",
+  "name": "claude-skills",
   "owner": {
-    "name": "Vaibhav Malik"
+    "name": "Vaibhav Malik",
+    "url": "https://github.com/vaibhavmalik"
+  },
+  "metadata": {
+    "description": "Claude Code skills for the unglamorous half of shipping: babysitting PRs to merge and writing PR descriptions a stranger can review."
   },
   "plugins": [
     {
       "name": "babysit-pr",
-      "source": "./",
-      "description": "Automates the PR review-fix-push cycle: waits for CI, processes review comments (bot and human), fixes or defers, pushes, replies, and loops until clean."
+      "source": "./plugins/babysit-pr",
+      "description": "Drives a PR to merge: updates the branch, answers every review comment (bot or human), fixes CI, re-requests reviewers, and optionally watches until auto-merge lands it.",
+      "version": "2.0.0",
+      "category": "productivity",
+      "keywords": ["pull-request", "code-review", "ci", "github", "automation"]
+    },
+    {
+      "name": "pr-description",
+      "source": "./plugins/pr-description",
+      "description": "Writes a PR body for an engineer who knows nothing about the task, then has a fresh subagent fact-check every claim against the diff before posting.",
+      "version": "1.0.0",
+      "category": "productivity",
+      "keywords": ["pull-request", "documentation", "github", "code-review"]
     }
   ]
 }
