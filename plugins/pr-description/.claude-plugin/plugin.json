@@ -1,0 +1,10 @@
+{
+  "name": "pr-description",
+  "description": "Writes a PR body for an engineer who knows nothing about the task, then has a fresh subagent fact-check every claim against the diff before posting.",
+  "version": "1.0.0",
+  "author": { "name": "Vaibhav Malik", "url": "https://github.com/vaibhavmalik" },
+  "homepage": "https://github.com/vaibhavmalik/claude-skills/tree/main/plugins/pr-description",
+  "repository": "https://github.com/vaibhavmalik/claude-skills",
+  "license": "MIT",
+  "keywords": ["pull-request", "documentation", "github", "code-review", "claude-code"]
+}

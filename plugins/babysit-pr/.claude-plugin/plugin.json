@@ -1,0 +1,10 @@
+{
+  "name": "babysit-pr",
+  "description": "Drives a PR to merge: updates the branch, answers every review comment (bot or human), fixes CI, re-requests reviewers, and optionally watches until auto-merge lands it.",
+  "version": "2.0.0",
+  "author": { "name": "Vaibhav Malik", "url": "https://github.com/vaibhavmalik" },
+  "homepage": "https://github.com/vaibhavmalik/claude-skills/tree/main/plugins/babysit-pr",
+  "repository": "https://github.com/vaibhavmalik/claude-skills",
+  "license": "MIT",
+  "keywords": ["pull-request", "code-review", "ci", "github", "automation", "claude-code"]
+}
