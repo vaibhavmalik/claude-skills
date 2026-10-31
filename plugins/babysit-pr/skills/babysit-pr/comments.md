@@ -99,15 +99,19 @@ Using the batch-fetched data (no additional API calls):
 - **For review summary bodies**: a review has no `in_reply_to` to hang a reply from, so it is resolved only when a later issue comment contains `[babysit-pr]` and cites the review (quote a line of it, or name the reviewer and `submitted_at`), **or** when that same reviewer has submitted a newer `APPROVED`/`CHANGES_REQUESTED`/`DISMISSED`
   review (a later `COMMENTED` is more feedback, not an answer to the earlier body). Absent both, it is unresolved — an unanswerable thread must not read as an answered one.
 
-### Step 6: Exit check
+### Step 6: Early exit, and what "done" means
 
-Exit with "No unresolved comments" when no unresolved comments remain **and** every reviewer whose
-latest state is `CHANGES_REQUESTED` is accounted for by the rule that matches their case:
+**Early exit, decided now:** if no unresolved comments remain **and** no reviewer's latest state is
+`CHANGES_REQUESTED`, print "No unresolved comments" and exit.
+
+**Terminal state, judged after the processing and reply steps below:** the pass is complete when every
+reviewer whose latest state is `CHANGES_REQUESTED` is accounted for by the rule that matches their case:
 
 - **You fixed anything they raised** → their login MUST be in `reviewRequests`. A reply alone does
-  not count: the whole point of §3 is that a pushed fix leaves their review standing until they are
-  asked again, so exiting on "I replied" reinstates the defect this unit exists to remove.
-- **Everything they raised was deferred or already answered in an earlier pass** → §3 forbids
+  not count: the whole point of the "Re-request review" step is that a pushed fix leaves their review
+  standing until they are asked again, so finishing on "I replied" reinstates the defect this step
+  exists to remove.
+- **Everything they raised was deferred or already answered in an earlier pass** → that step forbids
   re-requesting, so a reply is the terminal state here.
 
 A standing `CHANGES_REQUESTED` is work even when every line comment is answered — it is what keeps
@@ -115,9 +119,9 @@ the PR unmergeable. But nothing in this skill can clear it: only that reviewer s
 review, or a dismissal, can. So "answered and re-requested" IS the terminal state.
 
 There is also a state where a re-request is **forbidden** and must not be waited on: every point that
-reviewer raised was deferred, or was already answered in an earlier pass. §3 explicitly does not
-re-request there. Exit reporting `blocked on <reviewer> (deferred — awaiting their read)` rather than
-looping on a condition nothing in this pass can satisfy.
+reviewer raised was deferred, or was already answered in an earlier pass. Report it as
+`blocked on <reviewer> (deferred — awaiting their read)` rather than looping on a condition nothing in
+this pass can satisfy.
 
 Report either as `blocked on <reviewer>` and exit — never loop waiting for a state you cannot change.
 
@@ -174,11 +178,12 @@ For each unresolved comment:
 # The PR number is a SHELL VARIABLE, not a placeholder to eyeball. Unset, this line stops the whole
 # recipe with a message; a placeholder left unsubstituted would file an issue reading "Deferred from
 # #PR_NUMBER", which no validator can catch because it is a perfectly good string.
+PR=PR_NUMBER   # the number from init. Set it in THIS shell call: shell state does not persist between tool calls.
 PR="${PR:?set PR to the pull request number this review is on}"
 
-# DEDUPE FIRST. babysit-pr is built to loop — `--until-merged` re-runs `comments` as new review
-# comments arrive — so a second pass over the same unresolved thread files the same issue again.
-# The opening phrase of the body below is the search key; keep them identical.
+# DEDUPE FIRST. babysit-pr is built to loop — the full cycle re-runs `comments` up to five times, and a
+# later run of the skill walks the same unresolved threads again — so a second pass files the same
+# issue again. The opening phrase of the body below is the search key; keep them identical.
 gh issue list --search "Deferred from #$PR" --state all --json number,title
 
 # Scratch in a throwaway directory, NOT in the repo: filing an issue must not leave an untracked
@@ -265,8 +270,8 @@ has no thread to reply into and Step 5 resolves it by that citation alone:
 
 A pushed fix does **not** clear a `CHANGES_REQUESTED` review. GitHub leaves it standing until that
 reviewer is asked again, so the PR keeps reading `REVIEW_REQUIRED` with nobody aware they are being
-waited on. One PR sat green from 08-24 still reading `REVIEW_REQUIRED` while its Sentry group fired
-in production.
+waited on. One PR sat green for weeks still reading `REVIEW_REQUIRED` while the bug it fixed kept firing in
+production.
 
 Queue this like any other reply — it is posted after the push, alongside them. (In orchestrator mode
 the orchestrator posts it in its Phase 3; see `orchestrator.md`.)
@@ -292,7 +297,7 @@ the same review is re-fixed and re-replied every iteration:
 
 - <point> → <what changed>
 ```
-**If §2 already queued a REVIEW-SUMMARY reply for this same reviewer, reuse it** — add the
+**If the "Post FIX replies" step already queued a REVIEW-SUMMARY reply for this same reviewer, reuse it** — add the
 `- <point> → <what changed>` lines to that comment and post nothing new. The two formats are
 deliberately identical, so posting both would notify the reviewer twice for one pass.
 

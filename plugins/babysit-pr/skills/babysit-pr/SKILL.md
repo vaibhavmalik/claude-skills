@@ -139,16 +139,14 @@ After init, read the appropriate sub-command file and follow it:
 
 **IMPORTANT**: Only read ONE file — the one matching the sub-command. Do not read all files.
 
-## Preview deploys (applies to every sub-command that pushes)
+## Preview deploys (optional; only when the repo has one)
 
-When the repo has a preview-deploy bot (a `@bot deploy` PR comment or equivalent) and the user will
-inspect the change on a preview URL, drive the deploy yourself and **verify what actually deployed**:
+If the repository has a preview-deploy bot triggered from a PR comment and the user will inspect the
+change on a preview URL, drive the deploy yourself and **verify what actually deployed**:
 
 1. After the push, post the repo's deploy command as a PR comment.
 2. Wait for the bot's confirmation and read the SHA it reports; **assert it equals the branch
-   HEAD you just pushed** — if it doesn't, the bot deployed a stale tree; re-trigger and re-check
-   (two burn-in deploys silently ran on stale SHAs and the user tested the wrong code).
-3. Only then hand over the URL — pointed at an entity that actually exercises the change (pick one
-   with data for the new path; an empty fixture shows nothing and reads as a bug).
+   HEAD you just pushed**. If it doesn't, the bot deployed a stale tree: re-trigger and re-check.
+3. Only then hand over the URL, pointed at a page or record that actually exercises the change.
 
-Never send the user to a preview URL you haven't SHA-verified.
+Never send the user to a preview URL you haven't SHA-verified. Repos without such a bot skip this.

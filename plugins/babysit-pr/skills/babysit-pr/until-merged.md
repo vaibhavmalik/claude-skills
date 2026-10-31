@@ -8,7 +8,7 @@ Keep the PR current with its base and let auto-merge land it. This is the persis
 
 ## Why this exists
 
-Branch protection commonly requires "branch must be up to date with base before merging." With auto-merge enabled, GitHub will land the PR the moment it is simultaneously up-to-date, green, and approved — but GitHub does **not** re-sync the branch for you when someone else merges to master first. The PR then sits at `BEHIND` forever. This loop closes that gap: it watches the PR's merge-readiness and re-syncs master whenever the branch falls behind, until the PR actually merges.
+Branch protection commonly requires "branch must be up to date with base before merging." With auto-merge enabled, GitHub will land the PR the moment it is simultaneously up-to-date, green, and approved — but GitHub does **not** re-sync the branch for you when someone else merges to the base branch first. The PR then sits at `BEHIND` forever. This loop closes that gap: it watches the PR's merge-readiness and re-syncs the base branch whenever the branch falls behind, until the PR actually merges.
 
 ## Step 0: Provenance gate (inherited PRs only)
 
@@ -17,9 +17,9 @@ predates the session, or another agent/human authored it), give it **one adversa
 enabling auto-merge**: read the actual diff (`gh pr diff` — never endorse from the PR body + CI
 badge), dispatch one fresh reviewer subagent over it (a second model if you have one), and for any deletion run the
 non-text reference sweep — tracked symlinks pointing into deleted paths
-(`git ls-files -s | awk '$1==120000 {print $4}'` + `readlink`), plus config/JSONB references a text
+(`git ls-files -s | awk '$1==120000 {print $4}'` + `readlink`), plus configuration or data-store references a text
 grep misses. WHY: an inherited cleanup PR was once auto-merged on "config-only, green CI" and broke
-a tracked symlink on master; the fix failed and the whole PR was reverted — the one-line sweep would
+a tracked symlink on the base branch; the fix failed and the whole PR was reverted — the one-line sweep would
 have caught it at this exact moment. PRs this session built and took through its own verify gates
 skip Step 0.
 
@@ -62,7 +62,7 @@ Route on `state` first, then `mergeStateStatus`:
 |--------|--------|
 | `state = MERGED` | **Exit success.** The PR landed. |
 | `state = CLOSED` | **Exit.** "PR closed without merge while watching." |
-| `mergeStateStatus = BEHIND` | **Re-sync (core action).** Read `update.md` and follow it (default merge strategy, or rebase if `--rebase`). This merges base into the branch and pushes. Then loop again immediately (no wait) — CI will re-run; the next iterations will pass through `UNSTABLE`/`CLEAN`. This is expected work, NOT a blocker. |
+| `mergeStateStatus = BEHIND` | **Re-sync (core action).** Read `update.md` and follow it **in standalone mode — it pushes** (the orchestrator's deferred-push override does not apply inside this watch loop); default merge strategy, or rebase if `--rebase`. Then loop again immediately (no wait) — CI will re-run; the next iterations will pass through `UNSTABLE`/`CLEAN`. This is expected work, NOT a blocker. |
 | `mergeStateStatus = DIRTY` or `mergeable = CONFLICTING` | Conflicts with base. Read `update.md` and follow it. If it resolves cleanly, push and loop. If `--safe` is set and a low-confidence conflict is hit, **stop and report** (see Blockers). |
 | `mergeStateStatus = UNSTABLE` | A check is failing. Read `checks.md` and follow it (it waits for CI, fixes, pushes, max 3 iterations). If it returns still-failing on a **required** check, **stop and report**. If it returns green, loop again. |
 | `mergeStateStatus = BLOCKED` | Inspect `reviewDecision`: if `REVIEW_REQUIRED` or `CHANGES_REQUESTED` → **stop and report** (human gate — see Blockers). Otherwise the block is a failing required check → read `checks.md`; if still failing after its loop, **stop and report**. |
@@ -90,8 +90,8 @@ On any blocker: print the reason, print the watch summary below, and exit. Do no
 
 A merged PR can still die: if you observe (now or on a later run) a `Revert "…(#N)"` PR referencing
 a PR this skill merged, the original goal is silently undone — file a follow-up issue carrying the
-original definition-of-done and what the revert revealed must be done differently (e.g. "remove
-.cursor cleanly: migrate the symlinked skill content into .claude/ first, then delete"). WHY: after
+original definition-of-done and what the revert revealed must be done differently (e.g. "delete the
+directory cleanly: move the content other paths still link to first, then delete"). WHY: after
 one such revert, the task's goal stayed dead for weeks because no artifact carried it forward.
 
 ## Summary

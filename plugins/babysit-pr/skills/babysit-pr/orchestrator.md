@@ -8,7 +8,9 @@ Delegates to sub-command files, batches all changes into a single push per itera
 
 If the PR is merged, skip branch update and checks. Run only comments in follow-up mode:
 
-1. Read `comments.md` and follow it (follow-up mode is active from init)
+1. Read `comments.md` and follow it **in full, including its "Commit, Push, and Reply" section** —
+   the orchestrator-mode deferral does not apply here, because a merged PR has no Phase 2/3 below;
+   `comments.md` pushes the reset branch, opens the follow-up PR and posts the replies itself
 2. Print summary and exit
 
 `--until-merged` is a no-op here (nothing left to merge) — warn and ignore if set.
@@ -85,7 +87,7 @@ Note: The branch update (merge commit or rebased commits) and the fix commit are
 
 After the push, in this order:
 
-1. **Run `comments.md` §3 first** — decide the re-requests (anyone whose latest review state is
+1. **Run the "Re-request review" step of `comments.md` first** (step 3 under "Commit, Push, and Reply") — decide the re-requests (anyone whose latest review state is
    `CHANGES_REQUESTED` and whose points this pass addressed) and fold its citing comment into the
    queued replies. It belongs after the push, because a re-request before the fix is pushed asks the
    reviewer to look at unchanged code; and it belongs BEFORE step 2, because its comment is *queued*
@@ -94,7 +96,7 @@ After the push, in this order:
    clear the reviewer's standing state, so an unguarded re-add spams them once per iteration.
 2. **Post all queued replies** (FIX, DEFER, and **REVIEW-SUMMARY**) using the commit SHA from
    Phase 2, following the reply formats in `comments.md`.
-3. **Apply the `gh pr edit --add-reviewer` calls** §3 selected, so the re-request lands with its
+3. **Apply the `gh pr edit --add-reviewer` calls** that step selected, so the re-request lands with its
    answer already visible.
 
 ### Phase 4: Wait for CI and fix
@@ -120,7 +122,7 @@ Loop decision:
 
 ### Phase 5a: Re-true the PR body (only on convergence)
 
-Run only when the cycle converged, and only if this loop actually changed something — a merge of
+Run only when the cycle converged, and only if **any iteration of this run** changed the PR — a merge of
 base, a review fix, or a CI fix. WHY here and not earlier: those three are exactly the changes
 that make a body describe a PR that no longer exists, and a claim that *was* accurate and has
 stopped being true is worse than no claim, because the reviewer acts on it. Skipping it when
